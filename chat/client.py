@@ -4,6 +4,7 @@
 import socket
 import sys
 import select
+import time
 from protocol import JsonProtocel
 
 __author__ = 'Riky'
@@ -42,8 +43,8 @@ class Client(object):
         running = True
         while running:
             try:
-                #sys.stdout.write(self.prompt)
-                #sys.stdout.flush()
+                # sys.stdout.write(self.prompt)
+                # sys.stdout.flush()
 
                 # Wait for input from stdin & socket
                 inputready, outputready, exceptrdy = select.select([0, self.client], [], [])
@@ -66,17 +67,18 @@ class Client(object):
 
                         else:
                             data = JsonProtocel.unpack(data)
+                            msg_time = time.strftime('%H:%M:%S', time.localtime(data['time']))
                             if data['action'] is ACT_CHAT:
-                                msg = '['+data['nickname']+']:'+data['content']
+                                msg = '[' + data['nickname'] + ' ' + msg_time + ']' + data['content']
                             elif data['action'] is ACT_CON:
-                                msg = '[system]:'+data['content']
+                                msg = '[system ' + msg_time + ']' + data['content']
                             elif data['action'] is ACT_SYSTEM:
-                                msg = '['+data['nickname']+']:'+data['content']
+                                msg = '[' + data['nickname'] + ' ' + msg_time + ']' + data['content']
                             elif data['action'] is ACT_SYSTEM:
-                                msg = '['+data['nickname']+']:'+data['content']
+                                msg = '[' + data['nickname'] + ' ' + msg_time + ']' + data['content']
                             else:
                                 break
-                            sys.stdout.write(msg+'\n')
+                            sys.stdout.write(msg + '\n')
                             sys.stdout.flush()
 
             except KeyboardInterrupt:

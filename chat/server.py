@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # -*- coding=utf-8 -*-
 
-__author__ = 'Riky'
-
 import socket
 import signal
 import select
 import sys
-import struct
 import time
 from protocol import JsonProtocel
+
+__author__ = 'Riky'
 
 ACT_CON = 1
 ACT_CHAT = 2
@@ -78,13 +77,13 @@ class JanServer(object):
                         print data
                         if data:
                             if data['action'] == ACT_CON:
-                                msg = str.title(data['nickname'])+" joined the chat room."
+                                msg = str.title(data['nickname']) + " joined the chat room."
                                 self.send(JsonProtocel.pack(msg, ACT_SYSTEM, "system"), self.output_clients)
                             elif data['action'] == ACT_CHAT:
                                 msg = data['content']
                                 self.send(JsonProtocel.pack(msg, ACT_SYSTEM, data['nickname']), self.output_clients)
                             elif data['action'] == ACT_EXIT:
-                                msg = data['nickname']+' '+data['content']
+                                msg = data['nickname'] + ' ' + data['content']
                                 self.send(JsonProtocel.pack(msg, ACT_SYSTEM, 'system'), self.output_clients)
                         else:
                             self.client -= 1
@@ -99,7 +98,9 @@ class JanServer(object):
         self.server.close()
 
     def send(self, msg, to_clients):
-        print self.client_map
+        """
+        send data
+        """
         try:
             for s in to_clients:
                 s.send(msg)
@@ -110,6 +111,9 @@ class JanServer(object):
             self.input_clients.remove(s)
 
     def recieve(self, server):
+        """
+        recieve data
+        """
         buff = server.recv(1024)
         return JsonProtocel.unpack(buff)
 

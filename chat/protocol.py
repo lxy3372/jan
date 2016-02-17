@@ -15,7 +15,8 @@ class JsonProtocel:
         pack_dict = {
             'nickname': nickname,
             'action': action,
-            'content': content
+            'content': content,
+            'time': time.time()
         }
         return json.dumps(pack_dict)
 
