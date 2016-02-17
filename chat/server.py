@@ -44,6 +44,7 @@ class JanServer(object):
         for client in self.output_clients:
             client.close()
         self.server.close()
+        sys.exit(0)
 
     def run(self):
         self.input_clients = [self.server, sys.stdin]
@@ -64,6 +65,8 @@ class JanServer(object):
                     self.client += 1
                     self.input_clients.append(new_client)
                     self.client_map[new_client] = {'address': new_address}
+                    msg = " Welcome to the chat room."
+                    self.send(JsonProtocel.pack(msg, ACT_SYSTEM, "system"), [new_client])
                     self.output_clients.append(new_client)
                 elif s == sys.stdin:
                     # stop running
@@ -77,6 +80,12 @@ class JanServer(object):
                             if data['action'] == ACT_CON:
                                 msg = str.title(data['nickname'])+" joined the chat room."
                                 self.send(JsonProtocel.pack(msg, ACT_SYSTEM, "system"), self.output_clients)
+                            elif data['action'] == ACT_CHAT:
+                                msg = data['content']
+                                self.send(JsonProtocel.pack(msg, ACT_SYSTEM, data['nickname']), self.output_clients)
+                            elif data['action'] == ACT_EXIT:
+                                msg = data['nickname']+' '+data['content']
+                                self.send(JsonProtocel.pack(msg, ACT_SYSTEM, 'system'), self.output_clients)
                         else:
                             self.client -= 1
                             s.close()
@@ -90,9 +99,12 @@ class JanServer(object):
         self.server.close()
 
     def send(self, msg, to_clients):
+        print self.client_map
         try:
             for s in to_clients:
                 s.send(msg)
+                print msg
+                print s
         except socket.error:
             to_clients.remove(s)
             self.input_clients.remove(s)

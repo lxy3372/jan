@@ -11,10 +11,11 @@ __author__ = 'Riky'
 ACT_CON = 1
 ACT_CHAT = 2
 ACT_EXIT = 3
+ACT_SYSTEM = 4
+
 
 class Client(object):
-
-    def __init__(self, host, port = 0):
+    def __init__(self, host, port=0):
         self.host = host
         self.port = port
         self.nickname = ''
@@ -41,8 +42,8 @@ class Client(object):
         running = True
         while running:
             try:
-                sys.stdout.write(self.prompt)
-                sys.stdout.flush()
+                #sys.stdout.write(self.prompt)
+                #sys.stdout.flush()
 
                 # Wait for input from stdin & socket
                 inputready, outputready, exceptrdy = select.select([0, self.client], [], [])
@@ -64,18 +65,27 @@ class Client(object):
                             break
 
                         else:
-                            if 'PLAIN:' in data:
-                                data = data.strip('PLAIN:').strip()
+                            data = JsonProtocel.unpack(data)
+                            if data['action'] is ACT_CHAT:
+                                msg = '['+data['nickname']+']:'+data['content']
+                            elif data['action'] is ACT_CON:
+                                msg = '[system]:'+data['content']
+                            elif data['action'] is ACT_SYSTEM:
+                                msg = '['+data['nickname']+']:'+data['content']
+                            elif data['action'] is ACT_SYSTEM:
+                                msg = '['+data['nickname']+']:'+data['content']
                             else:
-                                data = self.decryptor.decrypt(data)
-
-                            sys.stdout.write(data + '\n')
+                                break
+                            sys.stdout.write(msg+'\n')
                             sys.stdout.flush()
 
             except KeyboardInterrupt:
-                print 'Interrupted.'
-                self.sock.close()
+                msg = "leavel the chat room."
+                pack_data = JsonProtocel.pack(msg, ACT_EXIT, self.nickname)
+                self.client.send(pack_data)
+                self.client.close()
                 break
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -83,7 +93,5 @@ if __name__ == '__main__':
 
     host = sys.argv[1]
     port = int(sys.argv[2])
-    print host
-    print port
     client = Client(host, port)
     client.run()
